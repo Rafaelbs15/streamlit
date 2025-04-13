@@ -7,13 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/1cj8I-3WeVmA67HJOB_zUAE04_4-9SpGy
 """
 
-import streamlit as st
-import pandas as pd
-import numpy as np
-import streamlit.components.v1 as components
-from PIL import Image
-import matplotlib.pyplot as plt
-
 st.set_page_config(
     page_title="Análise exploratória SARESP",
     layout="wide",
