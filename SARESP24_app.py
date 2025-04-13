@@ -10,7 +10,7 @@ Original file is located at
 import streamlit as st
 import pandas as pd
 import numpy as np
-from ydata_profiling import ProfileReport
+from pandas_profiling import ProfileReport
 import streamlit.components.v1 as components
 from PIL import Image
 import seaborn as sns
