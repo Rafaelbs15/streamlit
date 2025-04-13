@@ -12,7 +12,6 @@ import pandas as pd
 import numpy as np
 import streamlit.components.v1 as components
 from PIL import Image
-import seaborn as sns
 import matplotlib.pyplot as plt
 
 st.set_page_config(
