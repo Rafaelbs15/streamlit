@@ -10,110 +10,79 @@ Original file is located at
 import streamlit as st
 import pandas as pd
 import numpy as np
-from ydata-profiling import ProfileReport
+from ydata_profiling import ProfileReport
 import streamlit.components.v1 as components
 from PIL import Image
-import base64
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-# Setting the page configuration
 st.set_page_config(
-    page_title="Análise expliratória e correlações entre Simulado SARESP e SARESP 2024 - Diretorias de Ensino",
+    page_title="Análise exploratória SARESP",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Adding some CSS for a better UI
-st.markdown("""
-    <style>
-        .main {
-            background-color: #3E5543;
-        }
-        .report-container {
-            max-width: 100%;
-        }
-        .css-18e3th9 {
-            padding-top: 1rem;
-        }
-        .css-1d391kg {
-            padding-top: 2rem;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
-# Title of the web app
-st.markdown("""
-# **Análise expliratória e correlações entre Simulado SARESP e SARESP 2024 - Diretorias de Ensino**
-
-- This app is developed by **Rafael Barbosa Simões** called **Análise Simulado e SARESP 2024 - DE**.
-
-""")
-
-# Sidebar for user interactions
-st.sidebar.header("Instructions")
-st.sidebar.markdown("""
-1. **Upload your CSV file**: Use the file uploader below to upload your CSV dataset.
-2. **View the DataFrame**: The uploaded dataset will be displayed in the main page.
-3. **Generate EDA Report**: An interactive profiling report will be generated and displayed.
-4. **Explore the Report**: Scroll through the report for insights and visualizations.
-""")
-
-st.sidebar.header("Upload your CSV file")
-uploaded_file = st.sidebar.file_uploader("Choose a CSV file", type="csv")
-
-# Function to load data
 @st.cache_data
 def load_data(file):
     return pd.read_csv(file)
 
-# Function to generate profile report
 @st.cache_data
 def generate_profile_report(dataframe):
     return ProfileReport(dataframe, explorative=True)
 
-# If file is uploaded, load data and display profiling report
+def show_correlation_plot(df):
+    st.header("Gráfico de Correlação")
+    numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
+    selected_cols = st.multiselect(
+        "Selecione duas ou mais variáveis numéricas:",
+        numeric_cols,
+        default=numeric_cols[:2] if len(numeric_cols) >= 2 else None
+    )
+    if selected_cols and len(selected_cols) >= 2:
+        corr = df[selected_cols].corr()
+        fig, ax = plt.subplots(figsize=(8, 6))
+        sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f", ax=ax)
+        st.pyplot(fig)
+    else:
+        st.info("Selecione pelo menos duas variáveis numéricas.")
+
+st.title("Análise exploratória e correlações - Simulado SARESP e SARESP 2024")
+
+st.sidebar.header("Instruções")
+st.sidebar.markdown("""
+1. Faça upload de um arquivo `.csv`
+2. Veja os dados
+3. Gere relatório EDA
+4. Veja correlação entre variáveis
+""")
+
+st.sidebar.header("Upload de Arquivo CSV")
+uploaded_file = st.sidebar.file_uploader("Escolha o arquivo", type="csv")
+
 if uploaded_file is not None:
     df = load_data(uploaded_file)
-    st.header('**Input DataFrame**')
+    st.header("📊 Dados carregados")
     st.write(df)
 
-    st.header('**Profiling Report**')
+    st.header("📋 Relatório de Análise Exploratória")
     profile_report = generate_profile_report(df)
-    profile_html = profile_report.to_html()
-    components.html(profile_html, height=1000, scrolling=True)
+    components.html(profile_report.to_html(), height=1000, scrolling=True)
 
-    # If no file is uploaded, display info and offer example dataset
+    show_correlation_plot(df)
+
 else:
-    st.sidebar.info('Awaiting for CSV file to be uploaded...')
-    if st.sidebar.button('Press to use Example Dataset'):
+    st.sidebar.info("Aguardando upload do arquivo.")
+    if st.sidebar.button("Usar exemplo"):
         @st.cache_data
         def load_example_data():
-            return pd.DataFrame(np.random.rand(100, 5), columns=['a', 'b', 'c', 'd', 'e'])
+            return pd.DataFrame(np.random.rand(100, 5), columns=['A', 'B', 'C', 'D', 'E'])
 
         df = load_example_data()
-        st.header('**Example DataFrame**')
+        st.header("📊 Exemplo de dados")
         st.write(df)
 
-        st.header('**Profiling Report**')
+        st.header("📋 Relatório de Análise Exploratória")
         profile_report = generate_profile_report(df)
-        profile_html = profile_report.to_html()
-        components.html(profile_html, height=1000, scrolling=True)
+        components.html(profile_report.to_html(), height=1000, scrolling=True)
 
-# The End
-
-# Criar o arquivo app.py
-code = """
-import streamlit as st
-
-st.title("Hello, Streamlit!")
-st.write("Este é um aplicativo simples usando Streamlit no Google Colab.")
-"""
-
-# Escreve o código no arquivo app.py
-with open("eda_app.py", "w") as file:
-    file.write(code)
-
-print("Arquivo app.py criado com sucesso!")
-
-!pip install -q streamlit
-
-!streamlit run /content/app.py &>/content/logs.txt & npx localtunnel --port 8501 & curl ipv4.icanhazip.com
+        show_correlation_plot(df)
