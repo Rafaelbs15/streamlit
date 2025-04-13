@@ -2,6 +2,7 @@ streamlit
 pandas
 numpy
 pandas-profiling
+ydata-profiling
 matplotlib
 seaborn
 Pillow
