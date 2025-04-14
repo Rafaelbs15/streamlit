@@ -26,11 +26,11 @@ def carregar_dados(url):
         return pd.DataFrame()
 
 # Coloque os links aqui:
-url_simulado = transformar_url_google_sheets("https://docs.google.com/spreadsheets/d/1EMEZAK_VRjUpqWFx00MlSiC3_3_rWUpA/view?usp=drive_link")
-url_raca_jundiai = transformar_url_google_sheets("https://docs.google.com/spreadsheets/d/1eNdo3xHRjUJ6i5EOHdARqQM2NIuusode/view?usp=drive_link")
-url_raca_sul1 = transformar_url_google_sheets("https://docs.google.com/spreadsheets/d/1iez8-jFuHRcuPEU0XdYGT3AGTu-kDl_6/view?usp=drive_link")
-url_saresp_jundiai = transformar_url_google_sheets("https://docs.google.com/spreadsheets/d/1EViJbfPdR51-SgbWvVKfUIQ1m9ltfYkf/view?usp=drive_link")
-url_saresp_sul1 = transformar_url_google_sheets("https://docs.google.com/spreadsheets/d/1xuMPPGO2bOo443GQbsoVuJEolojULRvk/view?usp=drive_link")
+url_simulado = transformar_url_google_sheets("https://docs.google.com/spreadsheets/d/1WdYDSdSnoZYGrqOZQ6et0ATZ6I_cn68sy40TDvU-7us/edit?usp=sharing")
+url_raca_jundiai = transformar_url_google_sheets("https://docs.google.com/spreadsheets/d/1ukOdMgipTZKbeutiX2dypD_CU1y0PZMzqg6nBIYM--k/edit?usp=drive_link")
+url_raca_sul1 = transformar_url_google_sheets("https://docs.google.com/spreadsheets/d/1r4Dnkqnw6eSYFzTbgM5gCPdDfMP3iglQn1Atkd_9V1c/edit?usp=drive_link")
+url_saresp_jundiai = transformar_url_google_sheets("https://docs.google.com/spreadsheets/d/1rVWqlFSdWczK0SYZ4ecSdloJJ4BNllgy7m0K5q9G31Q/edit?usp=drive_link")
+url_saresp_sul1 = transformar_url_google_sheets("https://docs.google.com/spreadsheets/d/1mMU5WVwGLQhSf_AwKBXJVaSyMOsqplZqaUeBLAQf-iM/edit?usp=drive_link")
 
 # Carregando os dados
 simulado = carregar_dados(url_simulado)
