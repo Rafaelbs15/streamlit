@@ -86,3 +86,4 @@ if 'RAÇA' in base.columns:
 else:
     st.warning("Coluna 'RAÇA' não encontrada na base combinada.")
 
+
