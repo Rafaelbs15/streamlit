@@ -57,64 +57,56 @@ saresp_jundiai_df = carregar_dados(url_saresp_jundiai)
 if simulado_df is None or raca_jundiai_df is None or raca_sul1_df is None or saresp_sul1_df is None or saresp_jundiai_df is None:
     st.stop()  # Se algum arquivo não foi carregado, interrompe a execução
 
-# Exemplo: combinar SARESP de Sul1 e Jundiaí
+# Unir os dados de SARESP e Raça
 saresp_df = pd.concat([saresp_sul1_df, saresp_jundiai_df], ignore_index=True)
+raca_df = pd.concat([raca_jundiai_df, raca_sul1_df], ignore_index=True)
 
-# Também pode juntar raças ou simulado com SARESP depois
+# Verificar as colunas presentes nas bases
+st.write("Colunas do DataFrame SARESP:")
+st.write(saresp_df.columns)
 
-# Verificar se colunas existem
-if 'Race' in saresp_df.columns and 'SARESP' in saresp_df.columns:
-    media_por_raca = saresp_df.groupby('Race')['SARESP'].mean().reset_index()
+st.write("Colunas do DataFrame Raça:")
+st.write(raca_df.columns)
 
-    # Gráfico de barras
-    alt.Chart(media_por_raca).mark_bar().encode(
-        x='Race:N',
+# Certificar que temos 'Escola' e 'DE' nas duas bases
+if 'Escola' in saresp_df.columns and 'DE' in saresp_df.columns and 'Escola' in raca_df.columns and 'DE' in raca_df.columns:
+    # Calcular a média do SARESP por Escola e DE
+    saresp_media_df = saresp_df.groupby(['Escola', 'DE'])['SARESP'].mean().reset_index()
+    
+    # Unir as bases de SARESP e Raça usando 'Escola' e 'DE' como chave
+    merged_df = pd.merge(saresp_media_df, raca_df, on=['Escola', 'DE'], how='inner')
+
+    # Verificar as primeiras linhas do DataFrame combinado
+    st.write("Primeiras linhas do DataFrame combinado:")
+    st.write(merged_df.head())
+
+    # Calcular correlação entre a média do SARESP e a Raça
+    # Assumindo que a coluna 'Raça' seja uma variável categórica (precisaria de um mapeamento para valores numéricos se for o caso)
+    correlation = merged_df['SARESP'].corr(merged_df['Raça'])  # Ajustar se for necessário mapear 'Raça' para valores numéricos
+
+    st.write(f"A correlação entre a média do SARESP e a Raça é: {correlation:.2f}")
+
+    # Plotar um gráfico de dispersão com a linha de regressão
+    scatter = alt.Chart(merged_df).mark_circle(size=60).encode(
+        x='Raça:N',  # Ajuste para uma coluna categórica se necessário
         y='SARESP:Q',
-        tooltip=['Race', 'SARESP']
-    ).properties(title="Média do SARESP por Raça").display()
-
-    # Boxplot
-    alt.Chart(saresp_df).mark_boxplot().encode(
-        x='Race:N',
-        y='SARESP:Q',
-        color='Race:N'
-    ).properties(title="Distribuição das Notas por Raça").display()
-else:
-    st.write("Colunas 'Race' ou 'SARESP' não encontradas.")
-
-# Juntar simulado com saresp se necessário
-# Exemplo: assumindo que possuem coluna em comum tipo 'Escola'
-# df_comparado = pd.merge(simulado_df, saresp_df, on='Escola')
-
-# Caso já esteja combinado:
-df_comparado = simulado_df.copy()  # ajustar conforme sua base
-
-if 'Simulado' in df_comparado.columns and 'SARESP' in df_comparado.columns:
-    # Regressão linear
-    x = df_comparado['Simulado']
-    y = df_comparado['SARESP']
-    slope, intercept, r_value, p_value, std_err = linregress(x, y)
-    r_squared = r_value ** 2
-
-    regression_line = pd.DataFrame({
-        'Simulado': np.linspace(x.min(), x.max(), 100)
-    })
-    regression_line['SARESP_Pred'] = slope * regression_line['Simulado'] + intercept
-
-    # Scatter + linha
-    scatter = alt.Chart(df_comparado).mark_circle(size=60).encode(
-        x='Simulado',
-        y='SARESP',
-        tooltip=['Simulado', 'SARESP']
+        tooltip=['Escola', 'DE', 'Raça', 'SARESP']
     )
 
+    # Linha de regressão
+    slope, intercept, r_value, p_value, std_err = linregress(merged_df['Raça'], merged_df['SARESP'])
+    regression_line = pd.DataFrame({
+        'Raça': np.linspace(merged_df['Raça'].min(), merged_df['Raça'].max(), 100)
+    })
+    regression_line['SARESP_Pred'] = slope * regression_line['Raça'] + intercept
+
     line = alt.Chart(regression_line).mark_line(color='red').encode(
-        x='Simulado',
+        x='Raça',
         y='SARESP_Pred'
     )
 
-    (scatter + line).interactive().properties(title="Regressão Simulado x SARESP").display()
+    (scatter + line).interactive().properties(title="Regressão entre Raça e Média do SARESP").display()
 
-    st.write(f"R² = {r_squared:.2f} | Equação: SARESP = {slope:.2f} * Simulado + {intercept:.2f}")
 else:
-    st.write("Colunas 'Simulado' ou 'SARESP' não encontradas.")
+    st.write("As colunas 'Escola' e 'DE' não foram encontradas nas bases.")
+
