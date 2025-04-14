@@ -74,7 +74,7 @@ if 'Escola' in saresp_df.columns and 'DE' in saresp_df.columns and 'Escola' in r
     saresp_media_df = saresp_df.groupby(['ESCOLA', 'DE '])['SARESP'].mean().reset_index()
     
     # Unir as bases de SARESP e Raça usando 'Escola' e 'DE' como chave
-    merged_df = pd.merge(saresp_media_df, raca_df, on=['Escola', 'DE'], how='inner')
+    merged_df = pd.merge(saresp_media_df, raca_df, on=['ESCOLA', 'DE '], how='inner')
 
     # Verificar as primeiras linhas do DataFrame combinado
     st.write("Primeiras linhas do DataFrame combinado:")
