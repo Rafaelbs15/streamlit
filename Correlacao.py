@@ -14,11 +14,11 @@ def transformar_url_google_drive(link):
     return f"https://drive.google.com/uc?export=download&id={file_id}"
 
 # Novos links (exemplo — substitua se necessário)
-url_simulado = transformar_url_google_drive("https://drive.google.com/file/d/1EMEZAK_VRjUpqWFx00MlSiC3_3_rWUpA/view?usp=drive_link")
-url_raca_jundiai = transformar_url_google_drive("https://drive.google.com/file/d/1eNdo3xHRjUJ6i5EOHdARqQM2NIuusode/view?usp=drive_link")
-url_raca_sul1 = transformar_url_google_drive("https://drive.google.com/file/d/1iez8-jFuHRcuPEU0XdYGT3AGTu-kDl_6/view?usp=drive_link")
-url_saresp_jundiai = transformar_url_google_drive("https://drive.google.com/file/d/11nyKoBgvBvzwGDntW_lT1PADKd4c8PEB/view?usp=sharing")
-url_saresp_sul1 = transformar_url_google_drive("https://drive.google.com/file/d/1kpg8LXoUmrEmAoFmEXmSPCN18klq4khe/view?usp=sharing")
+url_simulado = transformar_url_google_drive("https://docs.google.com/spreadsheets/d/1WdYDSdSnoZYGrqOZQ6et0ATZ6I_cn68sy40TDvU-7us/edit?usp=sharing")
+url_raca_jundiai = transformar_url_google_drive("https://docs.google.com/spreadsheets/d/1ukOdMgipTZKbeutiX2dypD_CU1y0PZMzqg6nBIYM--k/edit?usp=sharing")
+url_raca_sul1 = transformar_url_google_drive("https://docs.google.com/spreadsheets/d/1r4Dnkqnw6eSYFzTbgM5gCPdDfMP3iglQn1Atkd_9V1c/edit?usp=sharing")
+url_saresp_jundiai = transformar_url_google_drive("https://docs.google.com/spreadsheets/d/1rVWqlFSdWczK0SYZ4ecSdloJJ4BNllgy7m0K5q9G31Q/edit?usp=sharing")
+url_saresp_sul1 = transformar_url_google_drive("https://docs.google.com/spreadsheets/d/1mMU5WVwGLQhSf_AwKBXJVaSyMOsqplZqaUeBLAQf-iM/edit?usp=sharing")
 
 def carregar_dados(url):
     file_name = "dados_temp.csv"
