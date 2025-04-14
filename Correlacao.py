@@ -3,7 +3,7 @@ import pandas as pd
 import altair as alt
 from scipy.stats import linregress
 import numpy as np
-import gdown
+import gdown as gn
 
 # Configuração da página do Streamlit
 st.set_page_config(page_title="Dashboard SARESP", page_icon=":bar_chart:", layout="wide")
