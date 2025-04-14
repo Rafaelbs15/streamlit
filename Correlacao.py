@@ -27,11 +27,24 @@ def carregar_dados(url):
     # Baixar o arquivo
     file_name = "dados_temp.csv"  # Nome temporário para salvar o arquivo
     response = requests.get(url)
-    with open(file_name, 'wb') as f:
-        f.write(response.content)
+    
+    # Verificar se o download foi bem-sucedido
+    if response.status_code == 200:
+        with open(file_name, 'wb') as f:
+            f.write(response.content)
+    else:
+        st.error(f"Falha ao baixar o arquivo, código de status: {response.status_code}")
+        return None
 
-    # Ler o arquivo CSV
-    return pd.read_csv(file_name)
+    # Ler o arquivo CSV, tentando com diferentes configurações
+    try:
+        return pd.read_csv(file_name, encoding='utf-8')  # Tente com UTF-8
+    except pd.errors.ParserError:
+        try:
+            return pd.read_csv(file_name, encoding='latin1')  # Tente com Latin-1
+        except pd.errors.ParserError as e:
+            st.error(f"Erro ao ler o CSV: {e}")
+            return None
 
 # Carregar os dados
 simulado_df = carregar_dados(url_simulado)
@@ -39,6 +52,10 @@ raca_jundiai_df = carregar_dados(url_raca_jundiai)
 raca_sul1_df = carregar_dados(url_raca_sul1)
 saresp_sul1_df = carregar_dados(url_saresp_sul1)
 saresp_jundiai_df = carregar_dados(url_saresp_jundiai)
+
+# Verificar se os dados foram carregados com sucesso
+if simulado_df is None or raca_jundiai_df is None or raca_sul1_df is None or saresp_sul1_df is None or saresp_jundiai_df is None:
+    st.stop()  # Se algum arquivo não foi carregado, interrompe a execução
 
 # Exemplo: combinar SARESP de Sul1 e Jundiaí
 saresp_df = pd.concat([saresp_sul1_df, saresp_jundiai_df], ignore_index=True)
@@ -101,4 +118,3 @@ if 'Simulado' in df_comparado.columns and 'SARESP' in df_comparado.columns:
     st.write(f"R² = {r_squared:.2f} | Equação: SARESP = {slope:.2f} * Simulado + {intercept:.2f}")
 else:
     st.write("Colunas 'Simulado' ou 'SARESP' não encontradas.")
-
