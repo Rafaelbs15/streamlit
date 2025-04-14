@@ -5,44 +5,32 @@ from scipy.stats import linregress
 import numpy as np
 import gdown
 
-st.set_page_config(page_title="Dashboard SARESP",
-                   page_icon=":bar_chart:",
-                   layout="wide")
-
+# Configuração da página do Streamlit
+st.set_page_config(page_title="Dashboard SARESP", page_icon=":bar_chart:", layout="wide")
 st.title("Dashboard de Análise do SARESP")
 
-# -----------------------
-# DEFINIR A FUNÇÃO AQUI 👇
-# -----------------------
+# Função para transformar o link do Google Drive para o formato correto de download
 def transformar_url_google_drive(link):
     file_id = link.split('/d/')[1].split('/')[0]
     return f"https://drive.google.com/uc?export=download&id={file_id}"
 
-# -----------------------
-# AGORA SIM USAR A FUNÇÃO 👇
-# -----------------------
+# URLs corrigidas
 url_simulado = transformar_url_google_drive("https://drive.google.com/file/d/1EMEZAK_VRjUpqWFx00MlSiC3_3_rWUpA/view?usp=drive_link")
 url_raca_jundiai = transformar_url_google_drive("https://drive.google.com/file/d/1eNdo3xHRjUJ6i5EOHdARqQM2NIuusode/view?usp=drive_link")
 url_raca_sul1 = transformar_url_google_drive("https://drive.google.com/file/d/1iez8-jFuHRcuPEU0XdYGT3AGTu-kDl_6/view?usp=drive_link")
 url_saresp_sul1 = transformar_url_google_drive("https://drive.google.com/file/d/1xuMPPGO2bOo443GQbsoVuJEolojULRvk/view?usp=drive_link")
 url_saresp_jundiai = transformar_url_google_drive("https://drive.google.com/file/d/1EViJbfPdR51-SgbWvVKfUIQ1m9ltfYkf/view?usp=drive_link")
 
-# -----------------------
-# Função para baixar e carregar dados do Google Drive
-# -----------------------
+# Função para baixar e carregar os dados diretamente no pandas
 def carregar_dados(url):
-    file_name = url.split("=")[-1]  # nome do arquivo a ser salvo
+    # Baixar o arquivo
+    file_name = "dados_temp.csv"  # Nome temporário para salvar o arquivo
     gdown.download(url, file_name, quiet=False)
     
-    # Verificar se é CSV ou Excel
-    if file_name.endswith('.csv'):
-        return pd.read_csv(file_name)
-    else:
-        return pd.read_excel(file_name)
+    # Ler o arquivo CSV
+    return pd.read_csv(file_name)
 
-# -----------------------
 # Carregar os dados
-# -----------------------
 simulado_df = carregar_dados(url_simulado)
 raca_jundiai_df = carregar_dados(url_raca_jundiai)
 raca_sul1_df = carregar_dados(url_raca_sul1)
@@ -72,7 +60,7 @@ if 'Race' in saresp_df.columns and 'SARESP' in saresp_df.columns:
         color='Race:N'
     ).properties(title="Distribuição das Notas por Raça").display()
 else:
-    print("Colunas 'Race' ou 'SARESP' não encontradas.")
+    st.write("Colunas 'Race' ou 'SARESP' não encontradas.")
 
 # Juntar simulado com saresp se necessário
 # Exemplo: assumindo que possuem coluna em comum tipo 'Escola'
@@ -107,6 +95,7 @@ if 'Simulado' in df_comparado.columns and 'SARESP' in df_comparado.columns:
 
     (scatter + line).interactive().properties(title="Regressão Simulado x SARESP").display()
 
-    print(f"R² = {r_squared:.2f} | Equação: SARESP = {slope:.2f} * Simulado + {intercept:.2f}")
+    st.write(f"R² = {r_squared:.2f} | Equação: SARESP = {slope:.2f} * Simulado + {intercept:.2f}")
 else:
-    print("Colunas 'Simulado' ou 'SARESP' não encontradas.")
+    st.write("Colunas 'Simulado' ou 'SARESP' não encontradas.")
+
