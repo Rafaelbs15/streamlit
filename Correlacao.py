@@ -7,43 +7,8 @@ from urllib.parse import urlparse
 st.set_page_config(page_title="Análise SARESP", layout="wide")
 st.title("📊 Análise de Correlação - SARESP, Simulado e Raça")
 
-# Função melhorada para transformar link do Google Sheets
-def transformar_url_google_sheets(link):
-    try:
-        parsed = urlparse(link)
-        if "docs.google.com" not in parsed.netloc:
-            raise ValueError("Não é um link do Google Sheets")
-            
-        path_parts = parsed.path.split('/')
-        if len(path_parts) < 4 or path_parts[3] != 'd':
-            raise ValueError("Formato de link inválido")
-            
-        file_id = path_parts[4]
-        return f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=csv&gid=0"
-    except Exception as e:
-        st.error(f"❌ Erro ao processar o link: {e}")
-        return None
-
-# Função melhorada para carregar dados
-@st.cache_data(ttl=3600)  # Cache por 1 hora
-def carregar_dados(url):
-    if not url:
-        return pd.DataFrame()
-        
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        return pd.read_csv(pd.compat.StringIO(response.content.decode('utf-8')))
-    except requests.exceptions.RequestException as e:
-        st.error(f"Erro na requisição: {e}")
-    except pd.errors.EmptyDataError:
-        st.error("O arquivo CSV está vazio")
-    except Exception as e:
-        st.error(f"Erro inesperado: {e}")
-    return pd.DataFrame()
-
-# URLs - considere mover para secrets ou config
-urls = {
+# Configuração das URLs das planilhas (substitua com seus links reais)
+SHEET_URLS = {
     "simulado": "https://docs.google.com/spreadsheets/d/1WdYDSdSnoZYGrqOZQ6et0ATZ6I_cn68sy40TDvU-7us/edit",
     "raca_jundiai": "https://docs.google.com/spreadsheets/d/1ukOdMgipTZKbeutiX2dypD_CU1y0PZMzqg6nBIYM--k/edit",
     "raca_sul1": "https://docs.google.com/spreadsheets/d/1r4Dnkqnw6eSYFzTbgM5gCPdDfMP3iglQn1Atkd_9V1c/edit",
@@ -51,27 +16,59 @@ urls = {
     "saresp_sul1": "https://docs.google.com/spreadsheets/d/1mMU5WVwGLQhSf_AwKBXJVaSyMOsqplZqaUeBLAQf-iM/edit"
 }
 
-# Transformar URLs
-transformed_urls = {k: transformar_url_google_sheets(v) for k, v in urls.items()}
+# Função para transformar link do Google Sheets em link de exportação CSV
+def transformar_url_google_sheets(link):
+    try:
+        if "/d/" in link:
+            file_id = link.split("/d/")[1].split("/")[0]
+            return f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=csv"
+        else:
+            st.error("❌ Link inválido do Google Sheets.")
+            return None
+    except Exception as e:
+        st.error(f"Erro ao processar URL: {e}")
+        return None
 
-# Barra de progresso
-with st.spinner('Carregando dados...'):
-    # Carregar dados
-    data = {
-        "simulado": carregar_dados(transformed_urls["simulado"]),
-        "raca_jundiai": carregar_dados(transformed_urls["raca_jundiai"]),
-        "raca_sul1": carregar_dados(transformed_urls["raca_sul1"]),
-        "saresp_jundiai": carregar_dados(transformed_urls["saresp_jundiai"]),
-        "saresp_sul1": carregar_dados(transformed_urls["saresp_sul1"])
+# Função para carregar dados do Google Sheets com cache
+@st.cache_data(ttl=3600)  # Cache por 1 hora
+def carregar_dados(url, nome_planilha):
+    if not url:
+        st.error(f"URL não fornecida para {nome_planilha}")
+        return pd.DataFrame()
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        df = pd.read_csv(pd.compat.StringIO(response.content.decode('utf-8')))
+        st.success(f"✅ {nome_planilha} carregada com {len(df)} registros")
+        return df
+    except Exception as e:
+        st.error(f"❌ Erro ao carregar {nome_planilha}: {e}")
+        return pd.DataFrame()
+
+# Transformar URLs
+urls_transformadas = {
+    nome: transformar_url_google_sheets(url) 
+    for nome, url in SHEET_URLS.items()
+}
+
+# Carregar todos os dados
+with st.spinner('Carregando dados das planilhas...'):
+    dados = {
+        "simulado": carregar_dados(urls_transformadas["simulado"], "Simulado 9º ano"),
+        "raca_jundiai": carregar_dados(urls_transformadas["raca_jundiai"], "Raça Jundiaí"),
+        "raca_sul1": carregar_dados(urls_transformadas["raca_sul1"], "Raça Sul 1"),
+        "saresp_jundiai": carregar_dados(urls_transformadas["saresp_jundiai"], "SARESP Jundiaí"),
+        "saresp_sul1": carregar_dados(urls_transformadas["saresp_sul1"], "SARESP Sul 1")
     }
 
-# Verificar se os dados foram carregados
-if any(df.empty for df in data.values()):
-    st.error("Alguns dados não foram carregados corretamente. Verifique os links.")
+# Verificar se todos os dados foram carregados
+if any(df.empty for df in dados.values()):
+    st.error("Algumas planilhas não foram carregadas corretamente. Verifique os logs acima.")
     st.stop()
 
-# Padronizando colunas - versão mais robusta
-def padronizar_colunas(df):
+# Função para padronizar colunas
+def padronizar_colunas(df, nome_df):
     if df.empty:
         return df
         
@@ -83,102 +80,125 @@ def padronizar_colunas(df):
         'ESCOLAS': 'ESCOLA',
         'NOME DA ESCOLA': 'ESCOLA',
         'D.E.': 'DE',
-        'DIRETORIA DE ENSINO': 'DE'
+        'DIRETORIA DE ENSINO': 'DE',
+        'CÓDIGO DA ESCOLA': 'COD_ESCOLA'
     }
     
     df.rename(columns=column_mapping, inplace=True)
+    
+    # Verificar colunas essenciais
+    colunas_necessarias = {'ESCOLA', 'DE'}
+    colunas_faltando = colunas_necessarias - set(df.columns)
+    
+    if colunas_faltando:
+        st.warning(f"Aviso: {nome_df} está faltando colunas: {', '.join(colunas_faltando)}")
+    
     return df
 
 # Aplicar padronização
-for key in data:
-    data[key] = padronizar_colunas(data[key])
+dados_padronizados = {
+    nome: padronizar_colunas(df, nome) 
+    for nome, df in dados.items()
+}
 
-# Concatenar dados
+# Concatenar dados de mesma categoria
 try:
-    raca = pd.concat([data["raca_jundiai"], data["raca_sul1"]], ignore_index=True)
-    saresp = pd.concat([data["saresp_jundiai"], data["saresp_sul1"]], ignore_index=True)
+    raca_total = pd.concat([dados_padronizados["raca_jundiai"], dados_padronizados["raca_sul1"]], ignore_index=True)
+    saresp_total = pd.concat([dados_padronizados["saresp_jundiai"], dados_padronizados["saresp_sul1"]], ignore_index=True)
 except Exception as e:
     st.error(f"Erro ao concatenar dados: {e}")
     st.stop()
 
-# Verificar colunas necessárias
-required_columns = {'ESCOLA', 'DE'}
-for df_name, df in [('Simulado', data["simulado"]), ('Raça', raca), ('SARESP', saresp)]:
-    missing = required_columns - set(df.columns)
-    if missing:
-        st.error(f"❌ Colunas faltando na base {df_name}: {', '.join(missing)}")
+# Verificar colunas necessárias para merge
+colunas_merge = ['ESCOLA', 'DE']
+for df_nome, df in [('Simulado', dados_padronizados["simulado"]), 
+                    ('Raça', raca_total), 
+                    ('SARESP', saresp_total)]:
+    if not all(col in df.columns for col in colunas_merge):
+        st.error(f"❌ {df_nome} não tem todas as colunas necessárias para o merge: {colunas_merge}")
         st.stop()
 
-# Realizar merge
+# Realizar o merge dos dados
 try:
-    base = pd.merge(
-        data["simulado"], 
-        saresp, 
-        on=["ESCOLA", "DE"], 
-        how="inner",
+    base_completa = pd.merge(
+        dados_padronizados["simulado"],
+        saresp_total,
+        on=colunas_merge,
+        how='inner',
         suffixes=('_SIM', '_SARESP')
     )
-    base = pd.merge(
-        base, 
-        raca, 
-        on=["ESCOLA", "DE"], 
-        how="left"  # Usar left join para preservar todas as escolas do simulado
+    
+    base_completa = pd.merge(
+        base_completa,
+        raca_total,
+        on=colunas_merge,
+        how='left'
     )
+    
+    st.success("✅ Bases unidas com sucesso!")
 except Exception as e:
-    st.error(f"Erro ao unir os dados: {e}")
+    st.error(f"Erro ao unir as bases: {e}")
     st.stop()
 
-# Identificar colunas de notas
-nota_columns = {
-    'simulado': [col for col in base.columns if 'SIM' in col],
-    'saresp': [col for col in base.columns if 'SARESP' in col]
-}
+# Mostrar dados brutos
+if st.checkbox("Mostrar dados brutos"):
+    st.subheader("Dados Completos")
+    st.dataframe(base_completa)
 
-if not nota_columns['simulado'] or not nota_columns['saresp']:
-    st.error("Não foi possível identificar colunas de notas (SIM/SARESP)")
+# Análise de Correlação
+st.header("📈 Análise de Correlação")
+
+# Encontrar colunas de notas
+colunas_notas_sim = [col for col in base_completa.columns if 'SIM' in col]
+colunas_notas_saresp = [col for col in base_completa.columns if 'SARESP' in col]
+
+if not colunas_notas_sim or not colunas_notas_saresp:
+    st.error("Não foram encontradas colunas de notas (com sufixo SIM ou SARESP)")
     st.stop()
 
-# Selecionar a primeira coluna de cada tipo (você pode modificar isso)
-col_simulado = nota_columns['simulado'][0]
-col_saresp = nota_columns['saresp'][0]
-
-# Visualização
-st.subheader("Dados Combinados")
-st.dataframe(base.head())
-
-# Gráficos
-st.subheader("Análise de Correlação")
+col_simulado = st.selectbox("Selecione a coluna do Simulado", colunas_notas_sim)
+col_saresp = st.selectbox("Selecione a coluna do SARESP", colunas_notas_saresp)
 
 # Gráfico de dispersão
-if 'RAÇA' in base.columns:
-    chart = alt.Chart(base).mark_circle(size=80).encode(
-        x=alt.X(f"{col_saresp}:Q", title="Nota SARESP", scale=alt.Scale(zero=False)),
-        y=alt.Y(f"{col_simulado}:Q", title="Nota Simulado", scale=alt.Scale(zero=False)),
-        color=alt.Color("RAÇA:N", legend=alt.Legend(title="Raça")),
-        tooltip=["ESCOLA", "DE", "RAÇA", col_simulado, col_saresp]
+if 'RAÇA' in base_completa.columns:
+    st.subheader("Correlação por Raça")
+    
+    chart = alt.Chart(base_completa).mark_circle(size=60).encode(
+        x=alt.X(col_saresp, title="Nota SARESP", scale=alt.Scale(zero=False)),
+        y=alt.X(col_simulado, title="Nota Simulado", scale=alt.Scale(zero=False)),
+        color=alt.Color('RAÇA', legend=alt.Legend(title="Raça")),
+        tooltip=['ESCOLA', 'DE', 'RAÇA', col_simulado, col_saresp]
     ).properties(
         width=800,
-        height=500
+        height=500,
+        title=f"Correlação: {col_simulado} vs {col_saresp}"
     ).interactive()
     
     st.altair_chart(chart)
     
-    # Estatísticas adicionais
-    st.write("### Correlação por Raça")
-    correlacao = base.groupby("RAÇA")[[col_simulado, col_saresp]].corr().iloc[0::2,1]
-    st.write(correlacao)
+    # Cálculo de correlação por raça
+    st.subheader("Estatísticas por Raça")
+    correlacao_raca = base_completa.groupby('RAÇA')[[col_simulado, col_saresp]].corr().iloc[0::2,1]
+    st.write(correlacao_raca)
 else:
-    st.warning("Coluna 'RAÇA' não encontrada. Mostrando gráfico sem distinção por raça.")
-    chart = alt.Chart(base).mark_circle(size=80).encode(
-        x=alt.X(f"{col_saresp}:Q", title="Nota SARESP"),
-        y=alt.Y(f"{col_simulado}:Q", title="Nota Simulado"),
-        tooltip=["ESCOLA", "DE", col_simulado, col_saresp]
+    st.warning("Coluna 'RAÇA' não encontrada. Mostrando análise sem distinção por raça.")
+    
+    chart = alt.Chart(base_completa).mark_circle(size=60).encode(
+        x=alt.X(col_saresp, title="Nota SARESP"),
+        y=alt.X(col_simulado, title="Nota Simulado"),
+        tooltip=['ESCOLA', 'DE', col_simulado, col_saresp]
     ).properties(
         width=800,
         height=500
     ).interactive()
+    
     st.altair_chart(chart)
 
-# Mostrar correlação geral
-corr_geral = base[[col_simulado, col_saresp]].corr().iloc[0,1]
-st.metric("Correlação Geral", value=f"{corr_geral:.2f}")
+# Correlação geral
+correlacao_geral = base_completa[[col_simulado, col_saresp]].corr().iloc[0,1]
+st.metric("Correlação Geral", value=f"{correlacao_geral:.2f}")
+
+# Mostrar dados faltantes
+st.subheader("Verificação de Dados")
+st.write("Registros com valores faltantes:")
+st.write(base_completa.isnull().sum())
