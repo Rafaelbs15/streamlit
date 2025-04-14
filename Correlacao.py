@@ -3,7 +3,8 @@ import pandas as pd
 import altair as alt
 from scipy.stats import linregress
 import numpy as np
-import gdown as gn
+import requests
+import os
 
 # Configuração da página do Streamlit
 st.set_page_config(page_title="Dashboard SARESP", page_icon=":bar_chart:", layout="wide")
@@ -25,8 +26,10 @@ url_saresp_jundiai = transformar_url_google_drive("https://drive.google.com/file
 def carregar_dados(url):
     # Baixar o arquivo
     file_name = "dados_temp.csv"  # Nome temporário para salvar o arquivo
-    gdown.download(url, file_name, quiet=False)
-    
+    response = requests.get(url)
+    with open(file_name, 'wb') as f:
+        f.write(response.content)
+
     # Ler o arquivo CSV
     return pd.read_csv(file_name)
 
