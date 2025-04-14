@@ -17,6 +17,10 @@ st.set_page_config(page_title="Dashboard SARESP",
                    page_icon=":bar_chart:",
                    layout="wide")
 
+def transformar_url_google_drive(link):
+    file_id = link.split('/d/')[1].split('/')[0]
+    return f"https://drive.google.com/uc?export=download&id={file_id}"
+
 # URLs corrigidas
 url_simulado = transformar_url_google_drive("https://drive.google.com/file/d/1EMEZAK_VRjUpqWFx00MlSiC3_3_rWUpA/view?usp=drive_link")
 url_raca_jundiai = transformar_url_google_drive("https://drive.google.com/file/d/1eNdo3xHRjUJ6i5EOHdARqQM2NIuusode/view?usp=drive_link")
