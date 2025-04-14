@@ -17,27 +17,19 @@ st.set_page_config(page_title="Dashboard SARESP",
                    page_icon=":bar_chart:",
                    layout="wide")
 
-st.title("Dashboard de Análise do SARESP")
+# URLs corrigidas
+url_simulado = transformar_url_google_drive("https://drive.google.com/file/d/1EMEZAK_VRjUpqWFx00MlSiC3_3_rWUpA/view?usp=drive_link")
+url_raca_jundiai = transformar_url_google_drive("https://drive.google.com/file/d/1eNdo3xHRjUJ6i5EOHdARqQM2NIuusode/view?usp=drive_link")
+url_raca_sul1 = transformar_url_google_drive("https://drive.google.com/file/d/1iez8-jFuHRcuPEU0XdYGT3AGTu-kDl_6/view?usp=drive_link")
+url_saresp_sul1 = transformar_url_google_drive("https://drive.google.com/file/d/1xuMPPGO2bOo443GQbsoVuJEolojULRvk/view?usp=drive_link")
+url_saresp_jundiai = transformar_url_google_drive("https://drive.google.com/file/d/1EViJbfPdR51-SgbWvVKfUIQ1m9ltfYkf/view?usp=drive_link")
 
-# Carregar dados direto do Google Planilhas
-@st.cache_data
-def carregar_dados(url):
-    return pd.read_csv(url)
-
-# URLs para os arquivos do Google Drive
-url_simulado = "https://drive.google.com/file/d/1EMEZAK_VRjUpqWFx00MlSiC3_3_rWUpA/view?usp=drive_link"
-url_raca_jundiai = "https://drive.google.com/file/d/1eNdo3xHRjUJ6i5EOHdARqQM2NIuusode/view?usp=drive_link"
-url_raca_sul1 = "https://drive.google.com/file/d/1iez8-jFuHRcuPEU0XdYGT3AGTu-kDl_6/view?usp=drive_link"
-url_saresp_sul1 = "https://drive.google.com/file/d/1xuMPPGO2bOo443GQbsoVuJEolojULRvk/view?usp=drive_link"
-url_saresp_jundiai = "https://drive.google.com/file/d/1EViJbfPdR51-SgbWvVKfUIQ1m9ltfYkf/view?usp=drive_link"
-
-# Carregar os dados
+# Carregando os dados
 simulado_df = carregar_dados(url_simulado)
 raca_jundiai_df = carregar_dados(url_raca_jundiai)
 raca_sul1_df = carregar_dados(url_raca_sul1)
 saresp_sul1_df = carregar_dados(url_saresp_sul1)
 saresp_jundiai_df = carregar_dados(url_saresp_jundiai)
-
 simulado_df.head()
 
 # Exemplo: combinar SARESP de Sul1 e Jundiaí
