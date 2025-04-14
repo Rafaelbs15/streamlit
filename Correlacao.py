@@ -61,6 +61,13 @@ if simulado_df is None or raca_jundiai_df is None or raca_sul1_df is None or sar
 saresp_df = pd.concat([saresp_sul1_df, saresp_jundiai_df], ignore_index=True)
 raca_df = pd.concat([raca_jundiai_df, raca_sul1_df], ignore_index=True)
 
+# Padronizando os nomes das colunas para "Escola" e "DE" em ambas as bases
+raca_df = raca_df.rename(columns={'Escola': 'Escola'})  # Padronizar o nome da coluna 'Escola'
+# Adicionar DE no raca_df (se não estiver lá), caso contrário, deve ser renomeado também
+if 'DE' not in raca_df.columns:
+    st.error("A coluna 'DE' não foi encontrada na base de Raça.")
+    st.stop()
+
 # Verificar as colunas presentes nas bases
 st.write("Colunas do DataFrame SARESP:")
 st.write(saresp_df.columns)
@@ -71,37 +78,39 @@ st.write(raca_df.columns)
 # Certificar que temos 'Escola' e 'DE' nas duas bases
 if 'Escola' in saresp_df.columns and 'DE' in saresp_df.columns and 'Escola' in raca_df.columns and 'DE' in raca_df.columns:
     # Calcular a média do SARESP por Escola e DE
-    saresp_media_df = saresp_df.groupby(['ESCOLA', 'DE '])['SARESP'].mean().reset_index()
+    saresp_media_df = saresp_df.groupby(['Escola', 'DE'])['SARESP'].mean().reset_index()
     
     # Unir as bases de SARESP e Raça usando 'Escola' e 'DE' como chave
-    merged_df = pd.merge(saresp_media_df, raca_df, on=['ESCOLA', 'DE '], how='inner')
+    merged_df = pd.merge(saresp_media_df, raca_df, on=['Escola', 'DE'], how='inner')
+
+    # Mapeamento das categorias de Raça para valores numéricos
+    merged_df['Raça_num'] = merged_df['Raça'].map({'Branca': 1, 'Preta': 2, 'Parda': 3})
 
     # Verificar as primeiras linhas do DataFrame combinado
     st.write("Primeiras linhas do DataFrame combinado:")
     st.write(merged_df.head())
 
     # Calcular correlação entre a média do SARESP e a Raça
-    # Assumindo que a coluna 'Raça' seja uma variável categórica (precisaria de um mapeamento para valores numéricos se for o caso)
-    correlation = merged_df['SARESP'].corr(merged_df['Raça'])  # Ajustar se for necessário mapear 'Raça' para valores numéricos
+    correlation = merged_df['SARESP'].corr(merged_df['Raça_num'])
 
     st.write(f"A correlação entre a média do SARESP e a Raça é: {correlation:.2f}")
 
     # Plotar um gráfico de dispersão com a linha de regressão
     scatter = alt.Chart(merged_df).mark_circle(size=60).encode(
-        x='Raça:N',  # Ajuste para uma coluna categórica se necessário
+        x='Raça_num:N',  # A coluna de Raça numérica
         y='SARESP:Q',
         tooltip=['Escola', 'DE', 'Raça', 'SARESP']
     )
 
     # Linha de regressão
-    slope, intercept, r_value, p_value, std_err = linregress(merged_df['Raça'], merged_df['SARESP'])
+    slope, intercept, r_value, p_value, std_err = linregress(merged_df['Raça_num'], merged_df['SARESP'])
     regression_line = pd.DataFrame({
-        'Raça': np.linspace(merged_df['Raça'].min(), merged_df['Raça'].max(), 100)
+        'Raça_num': np.linspace(merged_df['Raça_num'].min(), merged_df['Raça_num'].max(), 100)
     })
-    regression_line['SARESP_Pred'] = slope * regression_line['Raça'] + intercept
+    regression_line['SARESP_Pred'] = slope * regression_line['Raça_num'] + intercept
 
     line = alt.Chart(regression_line).mark_line(color='red').encode(
-        x='Raça',
+        x='Raça_num',
         y='SARESP_Pred'
     )
 
