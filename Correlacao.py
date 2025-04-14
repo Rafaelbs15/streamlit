@@ -71,7 +71,7 @@ st.write(raca_df.columns)
 # Certificar que temos 'Escola' e 'DE' nas duas bases
 if 'Escola' in saresp_df.columns and 'DE' in saresp_df.columns and 'Escola' in raca_df.columns and 'DE' in raca_df.columns:
     # Calcular a média do SARESP por Escola e DE
-    saresp_media_df = saresp_df.groupby(['Escola', 'DE'])['SARESP'].mean().reset_index()
+    saresp_media_df = saresp_df.groupby(['ESCOLA', 'DE '])['SARESP'].mean().reset_index()
     
     # Unir as bases de SARESP e Raça usando 'Escola' e 'DE' como chave
     merged_df = pd.merge(saresp_media_df, raca_df, on=['Escola', 'DE'], how='inner')
