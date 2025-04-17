@@ -1,9 +1,3 @@
-!pip install streamlit
-!pip install altair
-!pip install pandas
-!pip install requests
-!pip install urllib
-!pip install plotly
 
 import streamlit as st
 import pandas as pd
