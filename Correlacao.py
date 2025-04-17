@@ -42,7 +42,7 @@ simulado_id_5anoSul2 = "1A0L4YwrVFt77Up049RSdZ9Toe9FD-oXkjERkdppFy0g"
 
 
 # Carrega
-df_simulado = carregar_sheet(simulado_id)
+df_simulado = carregar_sheet(simulado_id_9anoJundiai)
 df_raca_jundiai = carregar_sheet(raca_jundiai)
 df_raca_sul1 = carregar_sheet(raca_sul1)
 df_saresp_jundiai = carregar_sheet(saresp_jundiai)
