@@ -50,10 +50,11 @@ df_saresp_sul1 = carregar_sheet(saresp_sul1)
 df_simulado_5anoSul1 = carregar_sheet(simulado_id_5anoSul1)
 df_simulado_5anoSul2 = carregar_sheet(simulado_id_5anoSul2)
 
-print(df_simulado_5anoSul1.head(500))
-print(df_saresp_sul1())
-print(df_raca_jundiai())
-print(df_saresp_jundiai)
+if st.checkbox("Mostrar amostras dos dados"):
+    st.write(df_simulado_5anoSul1.head())
+    st.write(df_saresp_sul1.head())
+    st.write(df_raca_jundiai.head())
+    st.write(df_saresp_jundiai.head())
 
 def carregar_sheet(id_planilha):
     url_csv = f"https://docs.google.com/spreadsheets/d/{id_planilha}/export?format=csv"
