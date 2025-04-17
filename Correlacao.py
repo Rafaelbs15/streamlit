@@ -1,9 +1,11 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+import requests
+from urllib.parse import urlparse
 
 st.set_page_config(page_title="Análise SARESP", layout="wide")
-st.title("📊 Análise de Correlação - SARESP, Simulado e Raça")
+st.title("📊 Análise de Correlação SARESP, Simulado e Raça")
 
 # Função para carregar Google Sheets como CSV
 def carregar_sheet(id_planilha):
@@ -120,4 +122,3 @@ text = alt.Chart(media_por_de_serie).mark_text(
 )
 
 st.altair_chart(chart + text, use_container_width=True)
-
