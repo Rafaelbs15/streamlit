@@ -4,3 +4,5 @@ altair
 scipy
 numpy
 requests
+seaborn
+matplotlib.pyplot
